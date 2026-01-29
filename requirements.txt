@@ -1,0 +1,44 @@
+# ========================================
+# FIXED Requirements.txt
+# ========================================
+
+# Core FastAPI
+fastapi==0.115.0
+uvicorn[standard]==0.32.0
+python-multipart==0.0.12
+
+# AI/ML - FIXED VERSIONS
+groq==0.11.0
+anthropic==0.39.0
+
+# Configuration
+python-dotenv==1.0.1
+pydantic==2.10.3
+pydantic-settings==2.6.1
+
+# Database
+sqlalchemy==2.0.35
+aiosqlite==0.20.0
+
+# Logging
+loguru==0.7.2
+
+# Utilities
+requests==2.32.3
+
+# PDF Processing
+PyPDF2==3.0.1
+
+# Text Splitting - FIXED VERSION (with explicit version to avoid conflicts)
+langchain-text-splitters==0.3.2
+
+# Streamlit (optional)
+streamlit==1.40.2
+
+# ========================================
+# IMPORTANT NOTES:
+# ========================================
+# 1. anthropic==0.39.0 is added (was missing!)
+# 2. All versions are pinned to avoid conflicts
+# 3. No proxies parameter needed in new versions
+# ========================================
