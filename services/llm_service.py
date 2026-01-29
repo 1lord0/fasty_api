@@ -2,6 +2,7 @@
 LLM Service - Simple and Working Version
 No config imports, just environment variables
 """
+print("🔥🔥🔥 BU DOSYA LOKALİMDEN ÇALIŞIYOR! 🔥🔥🔥")
 import os
 from dotenv import load_dotenv
 
