@@ -129,9 +129,9 @@ async def root():
 if __name__ == "__main__":
     logger.info(f"Starting server on {settings.HOST}:{settings.PORT}")
     uvicorn.run(
-        "main:app",
-        host=settings.HOST,
-        port=settings.PORT,
-        reload=settings.DEBUG,
-        log_level=settings.LOG_LEVEL.lower()
-    )
+    "main:app",
+    host="0.0.0.0",  # localhost DEĞİL!
+    port=8000,
+    proxy_headers=True,        # EKLE
+    forwarded_allow_ips="*",   # EKLE
+)
