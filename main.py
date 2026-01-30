@@ -3,7 +3,16 @@ Main FastAPI application with enhanced features
 """
 import os
 
-for k in ["HTTP_PROXY", "HTTPS_PROXY", "http_proxy", "https_proxy"]:
+import os
+
+for k in [
+    "HTTP_PROXY",
+    "HTTPS_PROXY",
+    "http_proxy",
+    "https_proxy",
+    "ALL_PROXY",
+    "all_proxy"
+]:
     os.environ.pop(k, None)
 
 from fastapi import FastAPI, Request
