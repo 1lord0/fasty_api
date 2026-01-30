@@ -8,7 +8,7 @@ uvicorn[standard]==0.32.0
 python-multipart==0.0.12
 
 # AI/ML - FIXED VERSIONS
-groq>=0.4.2  # veya en güncel versiyon
+groq==0.11.0  # veya en güncel versiyon
 httpx==0.24.1
 
 
