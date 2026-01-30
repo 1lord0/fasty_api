@@ -2,7 +2,29 @@
 LLM Service - Simple and Working Version
 No config imports, just environment variables
 """
-print("🔥🔥🔥 BU DOSYA LOKALİMDEN ÇALIŞIYOR! 🔥🔥🔥")
+
+"""
+LLM Service - Standalone version without config dependencies
+"""
+
+import os
+
+# 🚨 CRITICAL FIX: remove proxy env BEFORE importing groq
+for k in [
+    "HTTP_PROXY",
+    "HTTPS_PROXY",
+    "http_proxy",
+    "https_proxy",
+    "ALL_PROXY",
+    "all_proxy",
+]:
+    os.environ.pop(k, None)
+
+from dotenv import load_dotenv
+from groq import Groq
+from typing import Optional
+import time
+
 import os
 from dotenv import load_dotenv
 
