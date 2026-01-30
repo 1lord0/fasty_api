@@ -1,6 +1,11 @@
 """
 Main FastAPI application with enhanced features
 """
+import os
+
+for k in ["HTTP_PROXY", "HTTPS_PROXY", "http_proxy", "https_proxy"]:
+    os.environ.pop(k, None)
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
