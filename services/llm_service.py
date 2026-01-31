@@ -1,15 +1,14 @@
 """
-LLM Service - Simple and Working Version
-No config imports, just environment variables
-"""
-
-"""
-LLM Service - Standalone version without config dependencies
+LLM Service - Safe, Lazy Init, Production Ready
+- No crash on import
+- Works without .env
+- Initializes Groq ONLY when needed
 """
 
 import os
+from typing import Optional
 
-# 🚨 CRITICAL FIX: remove proxy env BEFORE importing groq
+# 🚨 Remove proxy env vars BEFORE importing groq
 for k in [
     "HTTP_PROXY",
     "HTTPS_PROXY",
@@ -21,104 +20,92 @@ for k in [
     os.environ.pop(k, None)
 
 from dotenv import load_dotenv
-from groq import Groq
-from typing import Optional
-import time
 
-import os
-from dotenv import load_dotenv
-
-# Load environment ONCE at module level
+# Load .env if exists (harmless if not)
 load_dotenv()
 
-# Global variables
+# Global state
 _groq_client = None
-_llm_model = None
-_llm_temperature = None
-_llm_max_tokens = None
+_llm_model: Optional[str] = None
+_llm_temperature: Optional[float] = None
+_llm_max_tokens: Optional[int] = None
+
 
 def _initialize_groq():
-    """Initialize Groq client ONCE"""
+    """
+    Initialize Groq client ONCE.
+    Safe: does NOT crash app if key is missing.
+    """
     global _groq_client, _llm_model, _llm_temperature, _llm_max_tokens
-    
+
     if _groq_client is not None:
-        return  # Already initialized
-    
+        return
+
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key:
+        print("⚠️ GROQ_API_KEY not found → LLM disabled")
+        return
+
     try:
         from groq import Groq
-        
-        api_key = os.getenv("GROQ_API_KEY")
-        if not api_key:
-            raise ValueError("GROQ_API_KEY not found in .env file")
-        
-        # Initialize with ONLY api_key (no other parameters!)
+
         _groq_client = Groq(api_key=api_key)
-        
-        # Get settings from environment
+
         _llm_model = os.getenv("LLM_MODEL", "llama-3.1-8b-instant")
         _llm_temperature = float(os.getenv("LLM_TEMPERATURE", "0.3"))
         _llm_max_tokens = int(os.getenv("LLM_MAX_TOKENS", "2048"))
-        
-        print(f"✅ Groq client initialized successfully")
-        print(f"   Model: {_llm_model}")
-        
-    except Exception as e:
-        print(f"❌ Failed to initialize Groq client: {e}")
-        raise
 
-def ask_llm(question: str, system_prompt: str = None) -> str:
+        print("✅ Groq initialized")
+        print(f"   Model: {_llm_model}")
+
+    except Exception as e:
+        print(f"❌ Groq init failed: {e}")
+        _groq_client = None
+
+
+def ask_llm(question: str, system_prompt: Optional[str] = None) -> str:
     """
-    Ask a question to the LLM
-    
-    Args:
-        question: User question
-        system_prompt: Optional system prompt
-        
-    Returns:
-        str: LLM response
+    Ask the LLM safely.
+    Never crashes the app.
     """
-    # Initialize if needed
+
     if _groq_client is None:
         _initialize_groq()
-    
+
+    if _groq_client is None:
+        return "LLM is disabled (API key not configured)"
+
+    messages = [
+        {
+            "role": "system",
+            "content": system_prompt or "You are a helpful assistant.",
+        },
+        {
+            "role": "user",
+            "content": question,
+        },
+    ]
+
     try:
-        # Build messages
-        messages = []
-        if system_prompt:
-            messages.append({"role": "system", "content": system_prompt})
-        else:
-            messages.append({"role": "system", "content": "You are a helpful assistant."})
-        
-        messages.append({"role": "user", "content": question})
-        
-        # Call Groq API
         completion = _groq_client.chat.completions.create(
             model=_llm_model,
             messages=messages,
             temperature=_llm_temperature,
-            max_tokens=_llm_max_tokens
+            max_tokens=_llm_max_tokens,
         )
-        
-        response = completion.choices[0].message.content
-        print(f"✅ LLM response received")
-        
-        return response
-        
-    except Exception as e:
-        print(f"❌ LLM error: {e}")
-        raise
 
-# For backwards compatibility
+        return completion.choices[0].message.content
+
+    except Exception as e:
+        print(f"❌ LLM runtime error: {e}")
+        return "LLM error occurred"
+
+
+# Backwards compatibility
 class LLMService:
-    """Dummy class for compatibility"""
-    def ask(self, question: str, system_prompt: str = None, **kwargs) -> str:
+    def ask(self, question: str, system_prompt: Optional[str] = None, **_) -> str:
         return ask_llm(question, system_prompt)
 
-def get_llm_service():
-    """Get LLM service (for compatibility)"""
-    if _groq_client is None:
-        _initialize_groq()
-    return LLMService()
 
-# Initialize on import
-_initialize_groq()
+def get_llm_service():
+    return LLMService()
